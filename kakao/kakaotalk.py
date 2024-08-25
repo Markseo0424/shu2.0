@@ -48,6 +48,10 @@ class Kakaotalk:
         self.manageChatrooms()
 
     def openChatroom(self, name):
+        """
+        :param name: name of chatroom to open
+        :return: chatroom that is opened
+        """
         self.handle = self.searchHandle(self.name)
 
         main_view = win32gui.FindWindowEx(self.handle, None, "EVA_ChildWindow", None)
@@ -62,6 +66,8 @@ class Kakaotalk:
             self.chatRooms[name] = Chatroom(self.searchHandle(name))
         else:
             self.chatRooms[name].handle = self.searchHandle(name)
+
+        return self.chatRooms[name]
 
     def manageChatrooms(self):
         dels = []
