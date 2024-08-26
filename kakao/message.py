@@ -7,7 +7,10 @@ class Message:
         self.time = time
         self.user = user
         self.msg = msg
-        self.datetime = self.calc_datetime()
+        try:
+            self.datetime = self.calc_datetime()
+        except:
+            self.datetime = datetime.now()
 
     @property
     def plain_msg(self):

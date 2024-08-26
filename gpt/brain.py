@@ -11,7 +11,7 @@ class GptBrain:
 
         self.assistant = assistant
 
-    def __call__(self, text, stream=False, keep_thread=False):
+    def __call__(self, text, prompt=None, stream=False, keep_thread=False):
         """
         :param text: text to ask to gpt
         :param stream: using streaming print.
@@ -64,10 +64,17 @@ class GptBrain:
                 return self.cache
 
             else:
-                run = self.client.beta.threads.runs.create_and_poll(
-                    thread_id=self.thread.id,
-                    assistant_id=self.assistant
-                )
+                if prompt is not None:
+                    run = self.client.beta.threads.runs.create_and_poll(
+                        thread_id=self.thread.id,
+                        assistant_id=self.assistant,
+                        instructions=prompt
+                    )
+                else:
+                    run = self.client.beta.threads.runs.create_and_poll(
+                        thread_id=self.thread.id,
+                        assistant_id=self.assistant
+                    )
 
                 if run.status == 'completed':
                     messages = self.client.beta.threads.messages.list(

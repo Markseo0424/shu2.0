@@ -2,21 +2,27 @@ import json, datetime
 from kakao.kakaotalk import Kakaotalk
 from notion.shu_notion_tools import ShuNotionTools
 from gpt.brain import GptBrain
+from cmd.kernel import CmdKernel
 from util.sort import sort_tool_list
 from util.concat import concat
 
 
 class SHUAgent:
-    def __init__(self, keys_path='./data/keys.json', constants_path='./data/constants.json'):
+    def __init__(self, keys_path='./data/keys.json', constants_path='./data/constants.json',
+                 prompt_path='./data/prompt.txt'):
         self.name = '슈비서'
+        self.constants_path = constants_path
 
         with open(keys_path, 'r', encoding='UTF8') as f:
             self.keys = json.load(f)
         with open(constants_path, 'r', encoding='UTF8') as f:
             self.constants = json.load(f)
+        with open(prompt_path, 'r', encoding="UTF-8") as f:
+            self.prompt = f.read()
 
         assert 'token' in self.keys, "token doesn't exists!"
 
+        self.cmd = CmdKernel(callback=self.reload)
         self.kakao = Kakaotalk()
         self.gpt = GptBrain(
             token=self.keys['openaiKey'],
@@ -33,6 +39,13 @@ class SHUAgent:
         self.kakao.open()
         self.chatRooms['tool_chatroom'] = self.kakao.openChatroom(self.constants['tool_chatroom'])
         self.chatRooms['notice_chatroom'] = self.kakao.openChatroom(self.constants['notice_chatroom'])
+
+    def reload(self):
+        with open(self.constants_path, 'r', encoding='UTF8') as f:
+            self.constants = json.load(f)
+        self.chatRooms['tool_chatroom'] = self.kakao.openChatroom(self.constants['tool_chatroom'])
+        self.chatRooms['notice_chatroom'] = self.kakao.openChatroom(self.constants['notice_chatroom'])
+        self.kakao.manageChatrooms()
 
     def reserveTool(self, information):
         tools = information["tool_list"]
@@ -77,7 +90,9 @@ class SHUAgent:
         print("res: ", msg.plain_msg)
 
         text = msg.plain_msg
-        res = self.gpt(text)
+
+        prompt = self.prompt.replace("$TOOL_LIST$", concat(self.constants['tools'], ', '))
+        res = self.gpt(text, prompt)
         err = ''
 
         print("    assistant: \n       ", res.replace('\n', '\n        '))
@@ -120,10 +135,11 @@ class SHUAgent:
             self.chatRooms["tool_chatroom"].send("<에러가 발생했습니다.>")
             print("    취소 실패: 에러 발생")
 
-
-
     def handleCommand(self, msg):
         print("com: ", msg.plain_msg)
+        response = self.cmd(msg.msg)
+        self.chatRooms["tool_chatroom"].send(response)
+        print("   ", response)
 
     def toolCheckUpdateNotion(self):
         # ensure all rooms are open
@@ -159,4 +175,5 @@ class SHUAgent:
 if __name__ == "__main__":
     shu = SHUAgent()
     # shu.tools.evalChecks()
-    shu.toolCheckUpdateNotion()
+    # shu.toolCheckUpdateNotion()
+    print("done")
