@@ -93,9 +93,8 @@ class ShuNotionTools:
 
         return reserved_ids
 
-    def removeToolPage(self, dbId, code):
+    def removeToolPage(self, code):
         """
-        :param dbId: database id
         :param code: code of page to remove
         :return: 0 if remove success, 1 if no code exists, 2 if got error
         """
@@ -103,7 +102,7 @@ class ShuNotionTools:
         code = code.split()[0]
 
         try:
-            db = self.notion.read(dbId)
+            db = self.notion.read(self.tool)
             for page in db["results"]:
                 if len(page["properties"]["대여코드"]["rich_text"]) > 0:
                     if page["properties"]["대여코드"]["rich_text"][0]["text"]["content"] == code:
@@ -123,7 +122,7 @@ class ShuNotionTools:
     def dateConflict(self, dates):
         """
         :param dates: list of dates, [start, end]. each is form of [y,m,d,h,mn]
-        :return: tuple of (has conflict, links with conflict, list of fatal or not)
+        :return: tuple of (has passed, links with conflict, list of fatal or not)
         """
 
         start = datetime.datetime(*dates[0])
@@ -172,10 +171,10 @@ class ShuNotionTools:
 
     def toolConflict(self, tools, links, fatal_list):
         """
-        :param tools: tools to resesrve
+        :param tools: tools to reserve
         :param links: links of conflict dates
         :param fatal_list: fatal list of links
-        :return: tuple of (has conflict, links with conflict, list of fatal or not)
+        :return: tuple of (has passed, links with conflict, list of fatal or not)
         """
         conflict_dict = {}
 
@@ -195,7 +194,7 @@ class ShuNotionTools:
             if len(conflict_dict['녹음실']) == 0:
                 del conflict_dict['녹음실']
 
-            idx = tools.find('녹음실')
+            idx = tools.index('녹음실')
             tools.pop(idx)
             fatal_list.pop(idx)
 
@@ -254,3 +253,4 @@ class ShuNotionTools:
 
         for data in datas:
             self.updateChecks(*data)
+

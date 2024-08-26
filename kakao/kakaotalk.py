@@ -2,7 +2,7 @@ import pywinauto.findwindows
 from pywinauto import findwindows
 from pywinauto import application
 from util.post_key_win32 import *
-from chatroom import Chatroom
+from .chatroom import Chatroom
 
 
 class Kakaotalk:

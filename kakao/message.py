@@ -10,7 +10,7 @@ class Message:
         self.datetime = self.calc_datetime()
 
     @property
-    def full_msg(self):
+    def plain_msg(self):
         return f'{self.date} {self.time} {self.user}: {self.msg}'
 
     def calc_datetime(self):

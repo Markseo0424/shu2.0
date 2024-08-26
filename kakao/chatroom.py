@@ -1,6 +1,6 @@
 from util.post_key_win32 import *
 from pywinauto import clipboard
-from message import Message
+from .message import Message
 
 
 class Chatroom:
