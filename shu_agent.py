@@ -1,7 +1,9 @@
-import json
+import json, datetime
 from kakao.kakaotalk import Kakaotalk
 from notion.shu_notion_tools import ShuNotionTools
 from gpt.brain import GptBrain
+from util.sort import sort_tool_list
+from util.concat import concat
 
 
 class SHUAgent:
@@ -32,11 +34,93 @@ class SHUAgent:
         self.chatRooms['tool_chatroom'] = self.kakao.openChatroom(self.constants['tool_chatroom'])
         self.chatRooms['notice_chatroom'] = self.kakao.openChatroom(self.constants['notice_chatroom'])
 
+    def reserveTool(self, information):
+        tools = information["tool_list"]
+        dates = (information["date_start"], information["date_end"])
+
+        # check if date conflicts
+        date_passed, links, fatal_list = self.tools.dateConflict(dates)
+
+        # if date conflicts, check if tools also conflicts.
+        if not date_passed:
+            tool_passed, conflicts, fatal = self.tools.toolConflict(tools, links, fatal_list)
+        else:
+            tool_passed = True
+            conflicts = {}
+            fatal = False
+
+        # generate code by current time
+        code = datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')
+
+        # if passed condition, reserve tool
+        if tool_passed or not fatal:
+            self.tools.reserveTool(information, code)
+
+        # write message to kakaotalk
+        if tool_passed:
+            self.chatRooms['tool_chatroom'].send('<장비 대여가 완료되었습니다!>\n대여 코드 : ' + code)
+            print("    장비 대여 완료")
+        elif fatal:
+            text = '<장비 대여가 불가능합니다!> \n대여 시간이 겹칩니다. 확인 부탁드립니다!\n'
+            for tool in conflicts:
+                text += tool + ' : \n' + concat(conflicts[tool], sep='\n', link_adjust=True) + '\n'
+            self.chatRooms['tool_chatroom'].send(text)
+            print("    장비 대여 불가")
+        else:
+            text = '<장비 대여가 완료되었습니다!>\n대여 코드 : ' + code + '\n주의! 대여 시간이 겹칩니다. 확인 부탁드립니다!\n'
+            for tool in conflicts:
+                text += tool + ' : \n' + concat(conflicts[tool], sep='\n', link_adjust=True) + '\n'
+            self.chatRooms['tool_chatroom'].send(text)
+            print("    장비 대여 완료, 주의")
+
     def handleReservation(self, msg):
         print("res: ", msg.plain_msg)
 
+        text = msg.plain_msg
+        res = self.gpt(text)
+        err = ''
+
+        print("    assistant: \n       ", res.replace('\n', '\n        '))
+
+        # if there is error, save it and trim message
+        if 'err' in res:
+            split = res.split('\n')
+            res = split[0]
+            err = split[1].split("err:")[1].strip()
+
+        # make instruction list, [tools, date, purpose]
+        instruction = [s.strip() for s in res.split('/')]
+        instruction[0] = sort_tool_list(instruction[0].split(','))
+        instruction[1] = [[int(n) for n in s.strip().split(".")] for s in instruction[1].replace(":",".").split('~')]
+        print("   ", instruction)
+        print("   ", err)
+
+        information = {
+            "name": msg.user,
+            "tool_list": instruction[0],
+            "date_start": instruction[1][0],
+            "date_end": instruction[1][1],
+            "purpose": instruction[2]
+        }
+
+        self.reserveTool(information=information)
+
     def handleCancel(self, msg):
         print("can: ", msg.plain_msg)
+        code = msg.msg.split()[-1].strip()
+
+        status = self.tools.removeToolPage(code)
+        if status == 0:
+            self.chatRooms["tool_chatroom"].send("<예약 취소가 완료되었습니다!>")
+            print("    취소 완료")
+        elif status == 1:
+            self.chatRooms["tool_chatroom"].send("<해당 코드를 발견하지 못했거나 과거 대여 기록입니다.>")
+            print("    취소 실패: 해당 코드가 존재하지 않습니다.")
+        elif status == 2:
+            self.chatRooms["tool_chatroom"].send("<에러가 발생했습니다.>")
+            print("    취소 실패: 에러 발생")
+
+
 
     def handleCommand(self, msg):
         print("com: ", msg.plain_msg)
@@ -58,6 +142,7 @@ class SHUAgent:
 
         msg_to_check.reverse()
 
+        # classify messages and send it to handler function
         for msg in msg_to_check:
             if '[예약]' in msg.msg[:20]:
                 self.handleReservation(msg)
@@ -66,7 +151,12 @@ class SHUAgent:
             elif msg.msg[0] == '!':
                 self.handleCommand(msg)
 
+    def toolCheckEvaluation(self):
+        self.tools.evalChecks()
+        print("sys:  evaluating rent and return")
+
 
 if __name__ == "__main__":
     shu = SHUAgent()
+    # shu.tools.evalChecks()
     shu.toolCheckUpdateNotion()

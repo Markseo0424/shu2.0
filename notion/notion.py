@@ -76,7 +76,7 @@ class Notion:
             block_id=page_id,
             children=objs
         )
-        return self.client.blocks.children.list(page_id)['results'][-len(objs):]['id']
+        return [block['id'] for block in self.client.blocks.children.list(page_id)['results'][-len(objs):]]
 
     @staticmethod
     def dateString(y, m, d, h, mn):

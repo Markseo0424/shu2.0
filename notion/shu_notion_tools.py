@@ -10,7 +10,7 @@ class ShuNotionTools:
         self.tool = toolDbId
         self.tool_list = tool_list
 
-    def createToolPage(self, title, name, start, end, code):
+    def __createToolPage(self, title, name, start, end, code):
         """
         :param title: title of page
         :param name: user name who rent
@@ -35,12 +35,12 @@ class ShuNotionTools:
         # return only id, not full url
         return re.split('/|-', pageUrl)[-1]
 
-    def reserveTool(self, information: dict):
+    def reserveTool(self, information: dict, code):
         """
         :param information: reservation information dict, keys with 'name', 'tool_list', 'date_start', 'date_end', 'purpose'
+        :param code: reservation code
         :return reserve page ids
         """
-        code = datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')
 
         name = information['name']
         tool_list = information['tool_list']
@@ -55,7 +55,7 @@ class ShuNotionTools:
             tool_list.remove('녹음실')
 
             # create page first, add contents next
-            page_id = self.createToolPage('녹음실 대여', name, date_start, date_end, code)
+            page_id = self.__createToolPage('녹음실 대여', name, date_start, date_end, code)
 
             objs = [
                 o.title('대여 목적'),
@@ -73,7 +73,7 @@ class ShuNotionTools:
         if len(tool_list) == 0:
             return reserved_ids
 
-        page_id = self.createToolPage('장비 내부 대여', name, date_start, date_end, code)
+        page_id = self.__createToolPage('장비 내부 대여', name, date_start, date_end, code)
         objs = []
         objs.append(o.title('대여 장비'))
 
@@ -99,10 +99,23 @@ class ShuNotionTools:
         :return: 0 if remove success, 1 if no code exists, 2 if got error
         """
 
-        code = code.split()[0]
+        condition = {
+            "filter": {
+                "property": "대여 일시",
+                "date": {
+                    "on_or_after": datetime.datetime.now().strftime("%Y-%m-%d")
+                }
+            },
+            "sorts": [
+                {
+                    "property": "대여 일시",
+                    "direction": "descending"
+                }
+            ]
+        }
 
         try:
-            db = self.notion.read(self.tool)
+            db = self.notion.read(self.tool, data=json.dumps(condition))
             for page in db["results"]:
                 if len(page["properties"]["대여코드"]["rich_text"]) > 0:
                     if page["properties"]["대여코드"]["rich_text"][0]["text"]["content"] == code:
@@ -113,7 +126,7 @@ class ShuNotionTools:
         except:
             return 2
 
-    def dateOverlap(self, start, end, res_start, res_end, strict=True):
+    def __dateOverlap(self, start, end, res_start, res_end, strict=True):
         if strict:
             return not (end < res_start or start > res_end)
         else:
@@ -156,16 +169,16 @@ class ShuNotionTools:
             res_end = datetime.datetime.strptime(res['properties']['대여 일시']['date']['end'][:16], '%Y-%m-%dT%H:%M')
 
             # check conflict
-            if self.dateOverlap(start, end, res_start, res_end):
+            if self.__dateOverlap(start, end, res_start, res_end):
                 links.append(res['url'])
-                if self.dateOverlap(start, end, res_start, res_end, strict=False):
+                if self.__dateOverlap(start, end, res_start, res_end, strict=False):
                     fatal.append(True)
                 else:
                     fatal.append(False)
 
         return len(links) == 0, links, fatal
 
-    def isStudio(self, page_id):
+    def __isStudio(self, page_id):
         page = self.notion.client.blocks.children.list(page_id)
         return page['results'][0]['heading_2']['rich_text'][0]['text']['content'] == '대여 목적'
 
@@ -186,7 +199,7 @@ class ShuNotionTools:
 
             for i, url in enumerate(links):
                 page_id = url.split('/')[-1]
-                if self.isStudio(page_id):
+                if self.__isStudio(page_id):
                     conflict_dict['녹음실'].append(url)
                     fatal = fatal or (fatal_list[i] and True)
 
@@ -204,7 +217,7 @@ class ShuNotionTools:
             page_id = url.split('/')[-1]
             # do something only for tool reservation
             # TODO: make this more efficient
-            if self.isStudio(page_id):
+            if self.__isStudio(page_id):
                 continue
 
             page = self.notion.client.blocks.children.list(page_id)
@@ -227,7 +240,7 @@ class ShuNotionTools:
 
         return len(conflict_dict) == 0, conflict_dict, fatal
 
-    def updateChecks(self, pageId, take_out, returned):
+    def __updateChecks(self, pageId, take_out, returned):
         self.notion.update(pageId, {
             "properties": {
                 "반출": {
@@ -240,7 +253,16 @@ class ShuNotionTools:
         })
 
     def evalChecks(self):
-        df = self.notion.read(self.tool)
+        condition = {
+            "filter": {
+                "property": "반납",
+                "checkbox": {
+                  "equals": False
+                }
+            }
+        }
+
+        db = self.notion.read(self.tool, data=json.dumps(condition))
 
         # get list of (id, taked_out, returned) only for not returned reservations
 
@@ -249,8 +271,8 @@ class ShuNotionTools:
                                              '%Y-%m-%dT%H:%M') < datetime.datetime.now(),
                   datetime.datetime.strptime(d['properties']['대여 일시']['date']['end'][:16],
                                              '%Y-%m-%dT%H:%M') < datetime.datetime.now())
-                 for d in df['results'] if d['properties']['반납']['checkbox'] == False]
+                 for d in db['results'] if not d['properties']['반납']['checkbox']]
 
         for data in datas:
-            self.updateChecks(*data)
+            self.__updateChecks(*data)
 

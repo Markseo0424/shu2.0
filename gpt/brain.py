@@ -70,7 +70,7 @@ class GptBrain:
                 )
 
                 if run.status == 'completed':
-                    messages = gpt.client.beta.threads.messages.list(
+                    messages = self.client.beta.threads.messages.list(
                         thread_id=self.thread.id
                     )
                     # print(messages.data)
