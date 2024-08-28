@@ -9,8 +9,8 @@ class Message:
         self.msg = msg
         try:
             self.datetime = self.calc_datetime()
-        except:
-            self.datetime = datetime.now()
+        except TypeError:
+            self.datetime = datetime.min
 
     @property
     def plain_msg(self):

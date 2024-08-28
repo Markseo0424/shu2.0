@@ -47,6 +47,11 @@ class SHUAgent:
         self.chatRooms['notice_chatroom'] = self.kakao.openChatroom(self.constants['notice_chatroom'])
         self.kakao.manageChatrooms()
 
+    def restart(self):
+        print("restart agent")
+        self.kakao.reopen()
+        self.reload()
+
     def reserveTool(self, information):
         tools = information["tool_list"]
         dates = (information["date_start"], information["date_end"])
