@@ -86,4 +86,8 @@ class ShuNotionObjs:
 
         return pageObj
 
-
+    ANN = {
+        "id": "ae9e5e48-e39c-4f0a-8aac-3e30b0108ae9",
+        "name": "아나국",
+        "color": "yellow"
+    }

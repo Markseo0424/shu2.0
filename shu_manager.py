@@ -66,7 +66,7 @@ class SHUManager(object):
                         if "self." in func:
                             getattr(self, func.split('.')[1])()
                         else:
-                            getattr(self.agent, func)()
+                            getattr(self.agent, func.split('.')[0])()
 
             else:
                 self.check_internet_and_restart()

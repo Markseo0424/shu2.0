@@ -2,12 +2,13 @@ import re, datetime, json
 from .notion import Notion
 from .notion_objs import NotionObjs as o
 from .shu_notion_objs import ShuNotionObjs as so
+from util.date import dateOverlap
 
 
 class ShuNotionTools:
     def __init__(self, token, toolDbId, tool_list):
         self.notion = Notion(token=token)
-        self.tool = toolDbId
+        self.id = toolDbId
         self.tool_list = tool_list
 
     def __createToolPage(self, title, name, start, end, code):
@@ -28,9 +29,9 @@ class ShuNotionTools:
         }
 
         page = so.toolPage(page_dict)
-        self.notion.create(self.tool, page)
+        self.notion.create(self.id, page)
 
-        pageUrl = self.notion.read(self.tool)['results'][0]['url']
+        pageUrl = self.notion.read(self.id)['results'][0]['url']
 
         # return only id, not full url
         return re.split('/|-', pageUrl)[-1]
@@ -115,7 +116,7 @@ class ShuNotionTools:
         }
 
         try:
-            db = self.notion.read(self.tool, data=json.dumps(condition))
+            db = self.notion.read(self.id, data=json.dumps(condition))
             for page in db["results"]:
                 if len(page["properties"]["대여코드"]["rich_text"]) > 0:
                     if page["properties"]["대여코드"]["rich_text"][0]["text"]["content"] == code:
@@ -125,12 +126,6 @@ class ShuNotionTools:
 
         except:
             return 2
-
-    def __dateOverlap(self, start, end, res_start, res_end, strict=True):
-        if strict:
-            return not (end < res_start or start > res_end)
-        else:
-            return not (end <= res_start or start >= res_end)
 
     def dateConflict(self, dates):
         """
@@ -160,7 +155,7 @@ class ShuNotionTools:
             ]
         }
 
-        db = self.notion.read(self.tool, data=json.dumps(condition))
+        db = self.notion.read(self.id, data=json.dumps(condition))
 
         # check if new reservation conflicts with existing reservation
         for res in db['results']:
@@ -169,9 +164,9 @@ class ShuNotionTools:
             res_end = datetime.datetime.strptime(res['properties']['대여 일시']['date']['end'][:16], '%Y-%m-%dT%H:%M')
 
             # check conflict
-            if self.__dateOverlap(start, end, res_start, res_end):
+            if dateOverlap(start, end, res_start, res_end):
                 links.append(res['url'])
-                if self.__dateOverlap(start, end, res_start, res_end, strict=False):
+                if dateOverlap(start, end, res_start, res_end, strict=False):
                     fatal.append(True)
                 else:
                     fatal.append(False)
@@ -262,7 +257,7 @@ class ShuNotionTools:
             }
         }
 
-        db = self.notion.read(self.tool, data=json.dumps(condition))
+        db = self.notion.read(self.id, data=json.dumps(condition))
 
         # get list of (id, taked_out, returned) only for not returned reservations
 

@@ -1,6 +1,6 @@
 import json, datetime
 from kakao.kakaotalk import Kakaotalk
-from notion.shu_notion_tools import ShuNotionTools
+from notion import ShuNotionTools, ShuNotionCalendar
 from gpt.brain import GptBrain
 from cmd.kernel import CmdKernel
 from util.sort import sort_tool_list
@@ -32,6 +32,10 @@ class SHUAgent:
             self.keys['token'],
             self.keys['databaseId'],
             self.constants['tools']
+        )
+        self.cal = ShuNotionCalendar(
+            self.keys['token'],
+            self.keys['calendarId']
         )
 
         # open chat rooms
@@ -175,6 +179,27 @@ class SHUAgent:
     def toolCheckEvaluation(self):
         self.tools.evalChecks()
         print("sys:  evaluating rent and return")
+
+    def calenderCheckNotion(self):
+        res = self.cal.today()
+
+        if not len(res):
+            return
+
+        text = '<오늘의 SUB 일정>\n'
+
+        # isANN = False
+
+        for sch in res:
+            text += '\n' + sch[2]
+            # if (sch[3]): isANN = True
+
+        # if (isANN):
+        #     text += '\n\n담당자 분들은 시간에 맞춰 송출 및 모니터링 해주시기 바랍니다❤'
+        # else:
+        text += '\n\n많은 관심 부탁드립니다❤'
+
+        self.chatRooms['notice_chatroom'].send(text)
 
 
 if __name__ == "__main__":
