@@ -1,6 +1,7 @@
 import json, datetime
 from kakao.kakaotalk import Kakaotalk
-from notion import ShuNotionTools, ShuNotionCalendar
+from youtube.youtube import Youtube
+from notion import ShuNotionTools, ShuNotionCalendar, ShuNotionArchive
 from gpt.brain import GptBrain
 from cmd.kernel import CmdKernel
 from util.sort import sort_tool_list
@@ -24,6 +25,10 @@ class SHUAgent:
 
         self.cmd = CmdKernel(callback=self.reload)
         self.kakao = Kakaotalk()
+        self.youtube = Youtube(
+            dev_key=self.keys["youtubeDevKey"],
+            channelId=self.keys["youtubeChannelId"]
+        )
         self.gpt = GptBrain(
             token=self.keys['openaiKey'],
             assistant=self.keys['assistantId']
@@ -36,6 +41,10 @@ class SHUAgent:
         self.cal = ShuNotionCalendar(
             self.keys['token'],
             self.keys['calendarId']
+        )
+        self.arc = ShuNotionArchive(
+            self.keys['token'],
+            self.keys['archiveId']
         )
 
         # open chat rooms
@@ -200,6 +209,16 @@ class SHUAgent:
         text += '\n\n많은 관심 부탁드립니다❤'
 
         self.chatRooms['notice_chatroom'].send(text)
+
+    def youtubeCheckUpdateNotion(self):
+        new_videos = self.youtube.get_new_videos()
+        if new_videos:
+            print("new videos found:")
+            for video in new_videos:
+                print(f"    {video['title']}")
+
+        for video in new_videos:
+            self.arc.post(**video)
 
 
 if __name__ == "__main__":

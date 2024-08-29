@@ -1,3 +1,4 @@
+from flask import Flask, request, jsonify
 from datetime import datetime,timedelta
 from util.check_internet import isInternetConnected
 from shu_agent import SHUAgent
@@ -29,6 +30,18 @@ class SHUManager(object):
             }
         }
         self.internet_connected = isInternetConnected()
+
+        self.app = Flask(__name__)
+
+        @self.app.route('/command', methods=['POST'])
+        def process_data():
+            data = request.json
+            res = self.agent.cmd("!shu " + data["input"])
+            result = {"response": res, "status": 200}
+            return jsonify(result)
+
+        self.port = 5000
+        self.app.run(port=self.port)
 
     def append(self, func_name, interval):
         self.intervals[func_name] = interval
@@ -63,10 +76,13 @@ class SHUManager(object):
                     interval = self.intervals[func]
                     if self.__eval(interval, last):
                         timer[func] = datetime.now()
-                        if "self." in func:
-                            getattr(self, func.split('.')[1])()
-                        else:
-                            getattr(self.agent, func.split('.')[0])()
+                        try:
+                            if "self." in func:
+                                getattr(self, func.split('.')[1])()
+                            else:
+                                getattr(self.agent, func.split('.')[0])()
+                        except Exception as e:
+                            print(f"error on {func}: {type(e).__name__}, {e}")
 
             else:
                 self.check_internet_and_restart()
@@ -116,7 +132,7 @@ class SHUManager(object):
 
     def __enter__(self):
         print("check internet connection...")
-        for _ in range(12):
+        for _ in range(3):
             self.internet_connected = isInternetConnected()
             time.sleep(5)
 
