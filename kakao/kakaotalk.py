@@ -69,6 +69,16 @@ class Kakaotalk:
 
         return self.chatRooms[name]
 
+    def closeChatroom(self, name):
+        """
+        :param name: name of chatroom to close
+        """
+
+        if name not in self.chatRooms:
+            return
+
+        del self.chatRooms[name]
+
     def manageChatrooms(self):
         dels = []
         for key in self.chatRooms:

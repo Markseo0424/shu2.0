@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <script defer src="js/script.js"></script>
+    <script src="https://kit.fontawesome.com/e633408544.js" crossorigin="anonymous"></script>
+    <title>SHU 2.0</title>
+</head>
+<body>
+      <header>
+        <h1>SHU 2.0</h1>
+        <div class="div-large"></div>
+        <ul>
+            <article class="Terminal on">
+                <i class="fas fa-terminal"></i>
+                <h2>Terminal</h2>
+            </article>
+            <article class="Constants">
+                <i class="fas fa-th-list"></i>
+                <h2>Constants</h2>
+            </article>
+            <article class="Tokens">
+                <i class="fas fa-code"></i>
+                <h2>Tokens</h2>
+            </article>
+            <article class="GPT">
+                <i class="fab fa-instalod"></i>
+                <h2>GPT Settings</h2>
+            </article>
+            <div class="div"></div>
+            <article class="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <h2>Log out</h2>
+            </article>
+            <article class="Account">
+                <i class="fas fa-user"></i>
+                <h2>Account</h2>
+            </article>
+        </ul>
+      </header>
+      <main>
+        <section class="title">
+            <h1>Terminal</h1>
+        </section>
+        <section class="description">
+            <h2>슈비서의 명령어를 직접 입력할 수 있습니다.</h2>
+        </section>
+        <section class="content">
+            <div class="Terminal on">
+                <h3>SHU 2.0</h3>
+                <i class="fas fa-eraser"></i>
+                <div class="black">
+                    <div class="texts">
+                        <div id="output"></div>
+                        <div class="input-line">
+                            <span class="prompt">> </span>
+                            <input type="text" name="input" id="input" autofocus autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="Constants Variables">
+                <section class="area">
+                    <ul>
+                        <li>
+                            <h4>Tool Chatroom</h4>
+                            <div>
+                                <input type="text" class="value">
+                            </div>
+                        </li>
+                        <li>
+                            <h4>Notice Chatrooom</h4>
+                            <div>
+                                <input type="text" class="value">
+                            </div>
+                        </li>
+                        <li>
+                            <h4>Tools</h4>
+                            <div>
+                                <input type="text" class="value">
+                            </div>
+                            <div>
+                                <input type="text" class="value">
+                            </div>
+                        </li>
+                        <div class="button add">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                    </ul>
+                </section>
+                <div class="button apply">Apply</div>
+            </div>
+
+            <div class="Tokens Variables">
+                <section class="area">
+                    <ul>
+                        <li>
+                            <h4>Notion Token</h4>
+                            <div>
+                                <input type="text" class="value">
+                            </div>
+                        </li>
+                        <li>
+                            <h4>Database Id</h4>
+                            <div>
+                                <input type="text" class="value">
+                            </div>
+                        </li>
+                    </ul>
+                </section>
+                <div class="button apply">Apply</div>
+            </div>
+            
+            <div class="GPT Variables">
+                <section class="area">
+                    <ul>
+                        <li>
+                            <h4>Prompt</h4>
+                            <div>
+                                <textarea type="text" class="gpt-prompt"></textarea>
+                            </div>
+                        </li>
+                    </ul>
+                </section>
+                <div class="button apply">Apply</div>
+                <div class="button GPT-API">GPT API Settings</div>
+            </div>
+
+            <div class="Account Variables">
+                <section class="area">
+                    <ul>
+                        <li>
+                            <h4>Admin ID</h4>
+                            <div>
+                                <input type="text" class="value">
+                            </div>
+                        </li>
+                        <li>
+                            <h4>Password</h4>
+                            <div>
+                                <input type="password" class="value">
+                            </div>
+                        </li>
+                    </ul>
+                </section>
+                <div class="button apply">Apply</div>
+            </div>
+
+        </section>
+      </main>
+</body>
+</html>

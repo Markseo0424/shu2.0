@@ -1,23 +1,34 @@
 import json, datetime
 from kakao.kakaotalk import Kakaotalk
-from notion.shu_notion_tools import ShuNotionTools
+from youtube.youtube import Youtube
+from notion import ShuNotionTools, ShuNotionCalendar, ShuNotionArchive
 from gpt.brain import GptBrain
+from cmd.kernel import CmdKernel
 from util.sort import sort_tool_list
 from util.concat import concat
 
 
 class SHUAgent:
-    def __init__(self, keys_path='./data/keys.json', constants_path='./data/constants.json'):
+    def __init__(self, keys_path='./data/keys.json', constants_path='./data/constants.json',
+                 prompt_path='./data/prompt.txt'):
         self.name = '슈비서'
+        self.constants_path = constants_path
 
         with open(keys_path, 'r', encoding='UTF8') as f:
             self.keys = json.load(f)
         with open(constants_path, 'r', encoding='UTF8') as f:
             self.constants = json.load(f)
+        with open(prompt_path, 'r', encoding="UTF-8") as f:
+            self.prompt = f.read()
 
         assert 'token' in self.keys, "token doesn't exists!"
 
+        self.cmd = CmdKernel(callback=self.reload)
         self.kakao = Kakaotalk()
+        self.youtube = Youtube(
+            dev_key=self.keys["youtubeDevKey"],
+            channelId=self.keys["youtubeChannelId"]
+        )
         self.gpt = GptBrain(
             token=self.keys['openaiKey'],
             assistant=self.keys['assistantId']
@@ -27,12 +38,32 @@ class SHUAgent:
             self.keys['databaseId'],
             self.constants['tools']
         )
+        self.cal = ShuNotionCalendar(
+            self.keys['token'],
+            self.keys['calendarId']
+        )
+        self.arc = ShuNotionArchive(
+            self.keys['token'],
+            self.keys['archiveId']
+        )
 
         # open chat rooms
         self.chatRooms = {}
         self.kakao.open()
         self.chatRooms['tool_chatroom'] = self.kakao.openChatroom(self.constants['tool_chatroom'])
         self.chatRooms['notice_chatroom'] = self.kakao.openChatroom(self.constants['notice_chatroom'])
+
+    def reload(self):
+        with open(self.constants_path, 'r', encoding='UTF8') as f:
+            self.constants = json.load(f)
+        self.chatRooms['tool_chatroom'] = self.kakao.openChatroom(self.constants['tool_chatroom'])
+        self.chatRooms['notice_chatroom'] = self.kakao.openChatroom(self.constants['notice_chatroom'])
+        self.kakao.manageChatrooms()
+
+    def restart(self):
+        print("restart agent")
+        self.kakao.reopen()
+        self.reload()
 
     def reserveTool(self, information):
         tools = information["tool_list"]
@@ -77,7 +108,9 @@ class SHUAgent:
         print("res: ", msg.plain_msg)
 
         text = msg.plain_msg
-        res = self.gpt(text)
+
+        prompt = self.prompt.replace("$TOOL_LIST$", concat(self.constants['tools'], ', '))
+        res = self.gpt(text, prompt)
         err = ''
 
         print("    assistant: \n       ", res.replace('\n', '\n        '))
@@ -120,10 +153,11 @@ class SHUAgent:
             self.chatRooms["tool_chatroom"].send("<에러가 발생했습니다.>")
             print("    취소 실패: 에러 발생")
 
-
-
     def handleCommand(self, msg):
         print("com: ", msg.plain_msg)
+        response = self.cmd(msg.msg)
+        self.chatRooms["tool_chatroom"].send(response)
+        print("   ", response)
 
     def toolCheckUpdateNotion(self):
         # ensure all rooms are open
@@ -155,8 +189,40 @@ class SHUAgent:
         self.tools.evalChecks()
         print("sys:  evaluating rent and return")
 
+    def calenderCheckNotion(self):
+        res = self.cal.today()
+
+        if not len(res):
+            return
+
+        text = '<오늘의 SUB 일정>\n'
+
+        # isANN = False
+
+        for sch in res:
+            text += '\n' + sch[2]
+            # if (sch[3]): isANN = True
+
+        # if (isANN):
+        #     text += '\n\n담당자 분들은 시간에 맞춰 송출 및 모니터링 해주시기 바랍니다❤'
+        # else:
+        text += '\n\n많은 관심 부탁드립니다❤'
+
+        self.chatRooms['notice_chatroom'].send(text)
+
+    def youtubeCheckUpdateNotion(self):
+        new_videos = self.youtube.get_new_videos()
+        if new_videos:
+            print("new videos found:")
+            for video in new_videos:
+                print(f"    {video['title']}")
+
+        for video in new_videos:
+            self.arc.post(**video)
+
 
 if __name__ == "__main__":
     shu = SHUAgent()
     # shu.tools.evalChecks()
-    shu.toolCheckUpdateNotion()
+    # shu.toolCheckUpdateNotion()
+    print("done")
