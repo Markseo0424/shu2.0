@@ -3,6 +3,7 @@ from datetime import datetime,timedelta
 from util.check_internet import isInternetConnected
 from shu_agent import SHUAgent
 import time
+import threading
 
 
 # Context manager that controls interval events and internet events
@@ -41,6 +42,11 @@ class SHUManager(object):
             return jsonify(result)
 
         self.port = 5000
+
+        self.server_thread = threading.Thread(target=self.run_app)
+        self.server_thread.start()
+
+    def run_app(self):
         self.app.run(port=self.port)
 
     def append(self, func_name, interval):
@@ -70,24 +76,31 @@ class SHUManager(object):
             timer[func] = datetime.min
 
         while True:
-            if self.internet_connected:
-                for func in self.intervals:
-                    last = timer[func]
-                    interval = self.intervals[func]
-                    if self.__eval(interval, last):
-                        timer[func] = datetime.now()
-                        try:
-                            if "self." in func:
-                                getattr(self, func.split('.')[1])()
-                            else:
-                                getattr(self.agent, func.split('.')[0])()
-                        except Exception as e:
-                            print(f"error on {func}: {type(e).__name__}, {e}")
+            try:
+                if self.internet_connected:
+                    for func in self.intervals:
+                        last = timer[func]
+                        interval = self.intervals[func]
+                        if self.__eval(interval, last):
+                            timer[func] = datetime.now()
+                            try:
+                                if "self." in func:
+                                    getattr(self, func.split('.')[1])()
+                                else:
+                                    getattr(self.agent, func.split('.')[0])()
+                            except KeyboardInterrupt:
+                                raise
+                            except Exception as e:
+                                print(f"error on {func}: {type(e).__name__}, {e}")
 
-            else:
-                self.check_internet_and_restart()
+                else:
+                    self.check_internet_and_restart()
+            except KeyboardInterrupt:
+                break
 
             time.sleep(1)
+
+        self.server_thread.join()
 
     def __eval(self, interval, last: datetime):
         now = datetime.now()
@@ -152,4 +165,5 @@ if __name__ == "__main__":
     with SHUManager(shu) as m:
         pass
         # m.append("echo", {"time": {"second": 5}})
+
 
