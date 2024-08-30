@@ -21,7 +21,7 @@ class SHUAgent:
         with open(prompt_path, 'r', encoding="UTF-8") as f:
             self.prompt = f.read()
 
-        assert 'token' in self.keys, "token doesn't exists!"
+        assert 'notionToken' in self.keys, "token doesn't exists!"
 
         self.cmd = CmdKernel(callback=self.reload)
         self.kakao = Kakaotalk()
@@ -34,16 +34,16 @@ class SHUAgent:
             assistant=self.keys['assistantId']
         )
         self.tools = ShuNotionTools(
-            self.keys['token'],
+            self.keys['notionToken'],
             self.keys['databaseId'],
             self.constants['tools']
         )
         self.cal = ShuNotionCalendar(
-            self.keys['token'],
+            self.keys['notionToken'],
             self.keys['calendarId']
         )
         self.arc = ShuNotionArchive(
-            self.keys['token'],
+            self.keys['notionToken'],
             self.keys['archiveId']
         )
 

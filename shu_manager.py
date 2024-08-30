@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from datetime import datetime,timedelta
 from util.check_internet import isInternetConnected
 from shu_agent import SHUAgent
-import time
+import time, json
 import threading
 
 
@@ -40,6 +40,42 @@ class SHUManager(object):
             res = self.agent.cmd("!shu " + data["input"])
             result = {"response": res, "status": 200}
             return jsonify(result)
+
+        @self.app.route('/get-data', methods=['POST'])
+        def send_data():
+            data_dict = {
+                'constants': 'constants.json',
+                'tokens': 'keys.json',
+                'prompt': 'prompt.txt'
+            }
+
+            try:
+                data = request.json
+                user_id, pw = data['user']['id'], data['user']['pw']
+
+                # TODO: change by security option
+                if user_id == 'admin' and pw == 'admin':
+                    data_name = data['name']
+                    data_path = data_dict[data_name]
+                    with open('./data/' + data_path, encoding='utf-8') as f:
+                        # if file is json file, load with json library
+                        if data_path.split('.')[-1] == 'json':
+                            res = json.load(f)
+
+                        # if file is txt file, load with readlines function
+                        elif data_path.split('.')[-1] == 'txt':
+                            res = ''.join(f.readlines())
+
+                        else:
+                            res = ''
+
+                    result = {"response": res, "status": 200}
+                    return jsonify(result)
+
+                return None
+
+            except KeyError:
+                return None
 
         self.port = 5000
 

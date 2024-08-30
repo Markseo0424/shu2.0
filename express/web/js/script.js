@@ -17,13 +17,7 @@ des = document.querySelector('.description h2');
 menuItems.forEach(function(item) {
     item.addEventListener("click", function(event){
         menuItems.forEach(function(el) {
-            // contents[idx].classList.remove('on');
             el.classList.remove('on');
-            
-            // if(el == item) {
-            //     selected = idx;
-            // }
-
         });
 
         contents.forEach(function(el) {
@@ -34,10 +28,13 @@ menuItems.forEach(function(item) {
         })
         
         item.classList.add('on');
-        // contents[selected].classList.add('on');
 
         title.textContent = title_and_des[item.classList[0]][0];
         des.textContent = title_and_des[item.classList[0]][1];
+
+        if(item.classList[0] == "GPT"){
+            document.querySelector('.GPT textarea').dispatchEvent(new Event('input')); 
+        }
     }) 
 }
 );
@@ -110,10 +107,114 @@ document.querySelector('main .Terminal > i').addEventListener('click', function(
     }
 })
 
-//Constants
+var constants = null;
+var tokens = null;
+var prompt = '';
 
+//Constants
+async function getConstants() {
+    response = await fetch('/get-constants', {
+        method: 'GET'
+    });
+    
+    res = await response.json();
+    console.log(res);
+    
+    if(res.status == 200){
+        return res.response;
+    }
+
+    return null;
+}
+
+function resetConstantWindow(){
+    console.log(constants);
+
+    ul = document.querySelector('.content > .Constants ul');
+    var innerHTML = '';
+
+    for(key in constants) {
+        console.log(key);
+        value = constants[key];
+
+        innerHTML += `
+        <li>
+            <h4>${key}</h4>`;
+            
+
+        if(value.constructor === Array){
+            value.forEach(item => {
+                innerHTML += `
+                    <div>
+                        <input type="text" class="value" value="${item}">
+                    </div>`;
+            });
+            innerHTML += `
+                </li>
+                        <div class="button add">
+                            <i class="fas fa-plus"></i>
+                        </div>`;
+        }
+        else {
+            innerHTML += 
+            `
+                <div>
+                    <input type="text" class="value" value="${value}">
+                </div>
+            </li>`;
+        }
+    }
+
+    ul.innerHTML = innerHTML;
+}
+
+(async () => {
+    constants = await getConstants();
+    resetConstantWindow();
+})();
 
 //Tokens
+async function getTokens() {
+    response = await fetch('/get-tokens', {
+        method: 'GET'
+    });
+    
+    res = await response.json();
+    console.log(res);
+    
+    if(res.status == 200){
+        return res.response;
+    }
+
+    return null;
+}
+
+function resetTokenWindow(){
+    console.log(tokens);
+
+    ul = document.querySelector('.content > .Tokens ul');
+    var innerHTML = '';
+
+    for(key in tokens) {
+        console.log(key);
+        value = tokens[key];
+
+        innerHTML += `
+        <li>
+            <h4>${key}</h4>
+            <div>
+                <input type="text" class="value" value="${value}">
+            </div>
+        </li>`;
+    }
+
+    ul.innerHTML = innerHTML;
+}
+
+(async () => {
+    tokens = await getTokens();
+    resetTokenWindow();
+})();
 
 //GPT
 const textarea = document.querySelector('.GPT textarea');
@@ -122,5 +223,31 @@ textarea.addEventListener('input', function(){
     this.style.height = 'auto';
     this.style.height = this.scrollHeight + 'px';
 });
+
+async function getPrompt() {
+    response = await fetch('/get-prompt', {
+        method: 'GET'
+    });
+    
+    res = await response.json();
+    console.log(res);
+    
+    if(res.status == 200){
+        return res.response;
+    }
+
+    return null;
+}
+
+function resetPromptWindow(){
+    p = document.querySelector('.gpt-prompt');
+    p.value = prompt;
+    p.dispatchEvent(new Event('input')); 
+}
+
+(async () => {
+    prompt = await getPrompt();
+    resetPromptWindow();
+})();
 
 //Account

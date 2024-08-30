@@ -30,15 +30,60 @@ app.post('/command', (req, res) => {
 })
 
 app.get('/get-constants', (req, res) => {
-
+    fetch('http://localhost:5000/get-data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ user: {id: 'admin', pw: 'admin'}, name: 'constants' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        res.json(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        res.json({status: 404});
+    });
 });
 
 app.get('/get-tokens', (req, res) => {
-
+    fetch('http://localhost:5000/get-data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ user: {id: 'admin', pw: 'admin'}, name: 'tokens' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        res.json(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        res.json({status: 404});
+    });
 });
 
 app.get('/get-prompt', (req, res) => {
-
+    fetch('http://localhost:5000/get-data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ user: {id: 'admin', pw: 'admin'}, name: 'prompt' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        res.json(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        res.json({status: 404});
+    });
 });
 
 app.get('/save-constants', (req, res) => {
