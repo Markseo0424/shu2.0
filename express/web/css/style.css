@@ -42,7 +42,10 @@ header {
     float: left;
     height: 100%;
     width: 218px;
+    transition-property: width height;
+    transition-duration: 0.2s;
 }
+
 
 header > h1 {
     margin-top: 60px;
@@ -135,34 +138,54 @@ main {
 }
 
 main .title {
-    height: 120px;
+    height: min(20vw, 120px);
     display: flex;
     align-items: end;
 }
 
 main h1 {
-    margin-left: 30px;
-    font-size: 64px;
+    margin-left: min(5vw, 30px);
+    font-size: min(12vw, 64px);
     font-weight: 700;
     color: #2A2A2A;
 }
 
 main h2{
-    margin-left: 36px;
-    line-height: 42px;
+    margin-left: min(6vw, 36px);
+    padding-right: min(6vw, 36px);
+    line-height: min(8vw, 42px);
     font-weight: 400;
-    font-size: 20px;
+    font-size: min(4vw, 20px);
     color: #494949;
 }
 
 main .content {
     background-color: white;
-    width: calc(100% - 48px);
-    height: calc(100% - 180px - 24px);
-    margin-left: 24px;
+    width: calc(100% - min(6vw, 48px));
+    height: max(calc(100% - min(45vw, 180px) - min(6vw, 24px)), 200px);
+    margin-left: min(3vw, 24px);
     margin-top: 18px;
     border-radius: 8px;
     filter: drop-shadow(2px 2px 10px rgba(0,0,0,0.1));
+}
+
+@media screen and (max-width: 700px) {
+    header{
+        height: 380px;
+        width: 100%;
+    }
+
+    header > h1 {
+        margin-top: 20px;
+    }
+
+    header > div {
+        margin-bottom: 20px;
+    }
+    main {
+        width: 100%;
+        height: 100%;
+    }
 }
 
 .content > div{
@@ -200,14 +223,14 @@ main .Terminal > i:hover {
 }
 
 main .Terminal  > .black {
-    width: calc(100% - 6px);
+    width: calc(100% - min(2vw, 6px));
     height: calc(100% - 39px);
-    margin-left: 3px;
+    margin-left: min(1vw, 3px);
     margin-bottom: 3px;
     border-radius: 5px;
     background-color: #3A3A3A;
     color: white;
-    font-size: 20px;
+    font-size: min(4vw, 20px);
     font-weight: 400;
     overflow: hidden;
 }
@@ -252,7 +275,7 @@ main .Terminal input::selection {
 /* Constants */
 
 .Variables .area {
-    height: calc(100% - 60px);
+    height: calc(100% - min(15vw, 60px));
     padding-bottom: 24px;
     overflow-y: scroll;
     scrollbar-width: none;
@@ -260,7 +283,7 @@ main .Terminal input::selection {
 
 
 main .GPT .area {
-    height: calc(100% - 120px);
+    height: calc(100% - min(30vw, 120px));
     padding-bottom: 24px;
     overflow-y: scroll;
     scrollbar-width: none;
@@ -271,20 +294,20 @@ main .GPT .area {
 } */
 
 .Variables li>h4 {
-    padding-top: 20px;
-    padding-bottom: 8px;
-    margin-left: 12px;
-    height: 56px;
-    font-size: 24px;
+    padding-top: min(5vw, 20px);
+    padding-bottom: min(2vw, 8px);
+    margin-left: min(3vw, 12px);
+    height: min(14vw, 56px);
+    font-size: min(6vw, 24px);
     font-weight: 500;
     color: #404040;
 }
 
 .Variables li>div{
-    margin-left: 10px;
-    margin-right: 36px;
-    height: 48px;
-    margin-bottom: 8px;
+    margin-left: min(2vw,10px);
+    margin-right: min(2vw,36px);
+    height: min(12vw, 48px);
+    margin-bottom: min(2vw, 8px);
     background-color: var(--bgcolor);
     border-radius: 8px;
     box-shadow: inset 2px 2px 8px rgba(0,0,0, .05);
@@ -295,7 +318,7 @@ main .GPT .area {
     margin-left: 16px;
     width: calc(100% - 32px);
     font-family: inherit; /* 부모 요소의 폰트 설정을 상속받음 */
-    font-size: 20px;
+    font-size: min(5vw, 20px);
     font-weight: 500;
     border: none;
     background: none;
@@ -308,15 +331,15 @@ main .GPT .area {
 }
 
 div .button {
-    margin-top: 4px;
-    margin-left: 10px;
-    margin-right: 36px;
-    line-height: 48px;
+    margin-top: min(1vw, 4px);
+    margin-left: min(2vw, 10px);
+    margin-right: min(2vw, 36px);
+    line-height: min(12vw, 48px);
     text-align: center;
     vertical-align: center;
     background-color: white;
     border-radius: 8px;
-    font-size: 24px;
+    font-size: min(6vw, 24px);
     color: #404040;
     font-weight: 500;
     transition-property: background-color color;
@@ -332,13 +355,13 @@ div .button:hover {
 
 main .GPT textarea{
     width: 100%; /* 넓이 고정 (부모 요소의 100%로 설정) */
-    padding: 10px; /* 내부 패딩 설정 */
+    padding: min(2vw, 10px); /* 내부 패딩 설정 */
     background-color: var(--bgcolor); /* 회색 배경 */
     color: #333; /* 텍스트 색상 */
     border: none; /* 기본 테두리 제거 */
     border-radius: 5px; /* 모서리를 둥글게 */
     font-family: inherit; /* 상속된 폰트 사용 */
-    font-size: 20px; /* 상속된 폰트 크기 사용 */
+    font-size: min(5vw, 20px); /* 상속된 폰트 크기 사용 */
     font-weight: 500;
     line-height: 1.5; /* 줄 간격 설정 */
     resize: none; /* 사용자가 크기 조절 못하게 설정 */
@@ -348,5 +371,5 @@ main .GPT textarea{
 }
 
 main .GPT .button {
-    margin-top: 8px;
+    margin-top: min(2vw, 8px);
 }
