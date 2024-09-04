@@ -205,6 +205,7 @@ class ShuNotionTools:
             idx = tools.index('녹음실')
             tools.pop(idx)
             fatal_list.pop(idx)
+            links.pop(idx)
 
         # check if tools conflicts
 
