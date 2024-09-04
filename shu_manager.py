@@ -126,8 +126,8 @@ class SHUManager(object):
                                     getattr(self.agent, func.split('.')[0])()
                             except KeyboardInterrupt:
                                 raise
-                            except Exception as e:
-                                print(f"error on {func}: {type(e).__name__}, {e}")
+                            # except Exception as e:
+                            #     print(f"error on {func}: {type(e).__name__}, {e}")
 
                 else:
                     self.check_internet_and_restart()
