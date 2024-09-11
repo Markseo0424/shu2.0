@@ -89,7 +89,7 @@ class SHUAgent:
 
         # write message to kakaotalk
         if tool_passed:
-            self.chatRooms['tool_chatroom'].send('<장비 대여가 완료되었습니다!>\n대여 코드 : ' + code)
+            self.chatRooms['tool_chatroom'].send('<장비 대여가 완료되었습니다!>\n대여 코드 : ' + code + ('\n' + information['error'] if information['error'] else ''))
             print("    장비 대여 완료")
         elif fatal:
             text = '<장비 대여가 불가능합니다!> \n대여 시간이 겹칩니다. 확인 부탁드립니다!\n'
@@ -133,7 +133,8 @@ class SHUAgent:
             "tool_list": instruction[0],
             "date_start": instruction[1][0],
             "date_end": instruction[1][1],
-            "purpose": instruction[2]
+            "purpose": instruction[2],
+            "error": err
         }
 
         self.reserveTool(information=information)
