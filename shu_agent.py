@@ -107,19 +107,29 @@ class SHUAgent:
     def handleReservation(self, msg):
         print("res: ", msg.plain_msg)
 
-        text = msg.plain_msg
+        text = msg.msg.split('[예약]')[1].strip()
 
-        prompt = self.prompt.replace("$TOOL_LIST$", concat(self.constants['tools'], ', '))
-        res = self.gpt(text, prompt)
+        tool_text, date_text, purpose_text = [t.strip() for t in text.split('/')]
+        date = f"{msg.date} {msg.time}"
+
+        tool_prompt, date_prompt = self.prompt.split("##\n")
+
+        tool_prompt = tool_prompt.replace("$TOOL_LIST$", concat(self.constants['tools'], ', '))
+        date_text = f"전송 일자: {date}\n{date_text}"
+
+        tool_res = self.gpt(tool_text, tool_prompt)
+        date_res = self.gpt(date_text, date_prompt)
         err = ''
 
-        print("    assistant: \n       ", res.replace('\n', '\n        '))
-
         # if there is error, save it and trim message
-        if 'err' in res:
-            split = res.split('\n')
-            res = split[0]
-            err = split[1].split("err:")[1].strip()
+        if '/err' in tool_res:
+            split = tool_res.split('/err:')
+            tool_res = split[0]
+            err = split[1].strip()
+
+        res = f"{tool_res} / {date_res} / {purpose_text}"
+
+        print("    assistant: \n       ", res.replace('\n', '\n        '), ("/err: " + err) if err else "")
 
         # make instruction list, [tools, date, purpose]
         instruction = [s.strip() for s in res.split('/')]

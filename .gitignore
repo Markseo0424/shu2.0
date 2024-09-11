@@ -1,3 +1,5 @@
 .idea
 __pycache__
 data/keys.json
+constants.json
+data.json
