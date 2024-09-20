@@ -151,7 +151,7 @@ class SHUAgent:
 
     def handleCancel(self, msg):
         print("can: ", msg.plain_msg)
-        code = msg.msg.split()[-1].strip()
+        code = msg.msg.split('[취소]')[-1].strip()
 
         status = self.tools.removeToolPage(code)
         if status == 0:
