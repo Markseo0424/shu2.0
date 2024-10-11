@@ -11,6 +11,9 @@ class Message:
             self.datetime = self.calc_datetime()
         except TypeError:
             self.datetime = datetime.min
+        except ValueError:
+            self.datetime = datetime.min
+
 
     @property
     def plain_msg(self):
